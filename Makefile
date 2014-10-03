@@ -54,9 +54,6 @@ progs:	rtmpdump rtmpgw rtmpsrv rtmpsuck
 install:	progs
 	-mkdir -p $(BINDIR) $(SBINDIR) $(MANDIR)/man1 $(MANDIR)/man8
 	cp rtmpdump$(EXT) $(BINDIR)
-#	cp rtmpgw$(EXT) rtmpsrv$(EXT) rtmpsuck$(EXT) $(SBINDIR)
-#	cp rtmpdump.1 $(MANDIR)/man1
-#	cp rtmpgw.8 $(MANDIR)/man8
 	@cd librtmp; $(MAKE) install
 
 clean:
@@ -73,18 +70,6 @@ $(LIBRTMP): FORCE
 
 rtmpdump: rtmpdump.o $(LIBRTMP)
 	$(CC) $(LDFLAGS) $^ $> -o $@$(EXT) $(LIBS)
-
-#rtmpsrv: rtmpsrv.o thread.o $(LIBRTMP)
-#	$(CC) $(LDFLAGS) $^ $> -o $@$(EXT) $(SLIBS)
-
-#rtmpsuck: rtmpsuck.o thread.o $(LIBRTMP)
-#	$(CC) $(LDFLAGS) $^ $> -o $@$(EXT) $(SLIBS)
-
-#rtmpgw: rtmpgw.o thread.o $(LIBRTMP)
-#	$(CC) $(LDFLAGS) $^ $> -o $@$(EXT) $(SLIBS)
-
-#rtmpgw.o: rtmpgw.c $(INCRTMP) Makefile
 rtmpdump.o: rtmpdump.c $(INCRTMP) Makefile
-#rtmpsrv.o: rtmpsrv.c $(INCRTMP) Makefile
-#rtmpsuck.o: rtmpsuck.c $(INCRTMP) Makefile
-thread.o: thread.c thread.h
+
+#thread.o: thread.c thread.h
