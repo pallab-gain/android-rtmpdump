@@ -5,6 +5,8 @@
 # p = Web URL of played programme
 # y = Overrides the playpath parsed from rtmp url
 # o = output file
+
+
 ./rtmpdump -r "rtmpe://mobs.jagobd.com/tlive" \
 -a "tlive" \
 -W "http://tv.jagobd.com/player/player.swf" \

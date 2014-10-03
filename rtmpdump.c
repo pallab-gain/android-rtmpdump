@@ -43,11 +43,6 @@
 #define DEF_BUFTIME	(10 * 60 * 60 * 1000)	/* 10 hours default */
 #define DEF_SKIPFRM	0
 
-// starts sockets
-int InitSockets() {
-	return TRUE;
-}
-
 inline void CleanupSockets() {
 	return ;
 }
@@ -430,129 +425,37 @@ int main(int argc, char **argv) {
 	RTMP_LogPrintf(
 			"(c) 2010 Andrej Stepanchuk, Howard Chu, The Flvstreamer Team; license: GPL\n");
 
-	if (!InitSockets()) {
-		RTMP_Log(RTMP_LOGERROR,
-				"Couldn't load sockets support on your platform, exiting!");
-		return RD_FAILED;
-	}
-
 	/* sleep(30); */
 
 	RTMP_Init(&rtmp);
 
 	int opt;
-	struct option longopts[] = { { "help", 0, NULL, 'h' }, { "host", 1, NULL,
-			'n' }, { "port", 1, NULL, 'c' }, { "socks", 1, NULL, 'S' }, {
-			"protocol", 1, NULL, 'l' }, { "playpath", 1, NULL, 'y' }, {
-			"playlist", 0, NULL, 'Y' }, { "rtmp", 1, NULL, 'r' }, { "swfUrl", 1,
-			NULL, 's' }, { "tcUrl", 1, NULL, 't' }, { "pageUrl", 1, NULL, 'p' },
-			{ "app", 1, NULL, 'a' }, { "auth", 1, NULL, 'u' }, { "conn", 1,
-					NULL, 'C' },
+	struct option longopts[] = {
+			{ "playpath", 1, NULL, 'y' },
+			{ "rtmp", 1, NULL, 'r' },
+			{ "pageUrl", 1, NULL, 'p' },
+			{ "app", 1, NULL, 'a' },
+
 #ifdef CRYPTO
-			{ "swfhash", 1, NULL, 'w' }, { "swfsize", 1, NULL, 'x' }, {
-					"swfVfy", 1, NULL, 'W' }, { "swfAge", 1, NULL, 'X' },
+			{ "swfVfy", 1, NULL, 'W' },
 #endif
-			{ "flashVer", 1, NULL, 'f' }, { "live", 0, NULL, 'v' }, { "flv", 1,
-					NULL, 'o' }, { "resume", 0, NULL, 'e' }, { "timeout", 1,
-					NULL, 'm' }, { "buffer", 1, NULL, 'b' }, { "skip", 1, NULL,
-					'k' }, { "subscribe", 1, NULL, 'd' }, { "start", 1, NULL,
-					'A' }, { "stop", 1, NULL, 'B' }, { "token", 1, NULL, 'T' },
-			{ "hashes", 0, NULL, '#' }, { "debug", 0, NULL, 'z' }, { "quiet", 0,
-					NULL, 'q' }, { "verbose", 0, NULL, 'V' }, { 0, 0, 0, 0 } };
+			 { "flv", 1, NULL, 'o' },
+			 { 0, 0, 0, 0 }
+			};
 
 	while ((opt = getopt_long(argc, argv,
 			"hVveqzr:s:t:p:a:b:f:o:u:C:n:c:l:y:Ym:k:d:A:B:T:w:x:W:X:S:#",
 			longopts, NULL)) != -1) {
 		switch (opt) {
-		case 'h':
-			usage(argv[0]);
-			return RD_SUCCESS;
 #ifdef CRYPTO
-		case 'w': {
-			int res = hex2bin(optarg, &swfHash.av_val);
-			if (res != RTMP_SWF_HASHLEN) {
-				swfHash.av_val = NULL;
-				RTMP_Log(RTMP_LOGWARNING,
-						"Couldn't parse swf hash hex string, not hexstring or not %d bytes, ignoring!",
-						RTMP_SWF_HASHLEN);
-			}
-			swfHash.av_len = RTMP_SWF_HASHLEN;
-			break;
-		}
-		case 'x': {
-			int size = atoi(optarg);
-			if (size <= 0) {
-				RTMP_Log(RTMP_LOGERROR,
-						"SWF Size must be at least 1, ignoring\n");
-			} else {
-				swfSize = size;
-			}
-			break;
-		}
 		case 'W':
 			STR2AVAL(swfUrl, optarg);
 			swfVfy = 1;
 			break;
-		case 'X': {
-			int num = atoi(optarg);
-			if (num < 0) {
-				RTMP_Log(RTMP_LOGERROR,
-						"SWF Age must be non-negative, ignoring\n");
-			} else {
-				swfAge = num;
-			}
-		}
-			break;
 #endif
-		case 'k':
-			nSkipKeyFrames = atoi(optarg);
-			if (nSkipKeyFrames < 0) {
-				RTMP_Log(RTMP_LOGERROR,
-						"Number of keyframes skipped must be greater or equal zero, using zero!");
-				nSkipKeyFrames = 0;
-			} else {
-				RTMP_Log(RTMP_LOGDEBUG,
-						"Number of skipped key frames for resume: %d",
-						nSkipKeyFrames);
-			}
-			break;
-		case 'b': {
-			int32_t bt = atol(optarg);
-			if (bt < 0) {
-				RTMP_Log(RTMP_LOGERROR,
-						"Buffer time must be greater than zero, ignoring the specified value %d!",
-						bt);
-			} else {
-				bufferTime = bt;
-				bOverrideBufferTime = TRUE;
-			}
-			break;
-		}
-		case 'v':
-			bLiveStream = TRUE; // no seeking or resuming possible!
-			break;
-		case 'd':
-			STR2AVAL(subscribepath, optarg);
-			break;
-		case 'n':
-			STR2AVAL(hostname, optarg);
-			break;
-		case 'c':
-			port = atoi(optarg);
-			break;
-		case 'l':
-			protocol = atoi(optarg);
-			if (protocol < RTMP_PROTOCOL_RTMP || protocol > RTMP_PROTOCOL_RTMPTS) {
-				RTMP_Log(RTMP_LOGERROR, "Unknown protocol specified: %d",
-						protocol);
-				return RD_FAILED;
-			}
-			break;
+
 		case 'y':
 			STR2AVAL(playpath, optarg);
-			break;
-		case 'Y':
-			RTMP_SetOpt(&rtmp, &av_playlist, (AVal *) &av_true);
 			break;
 		case 'r': {
 			AVal parsedHost, parsedApp, parsedPlaypath;
@@ -579,20 +482,11 @@ int main(int argc, char **argv) {
 			}
 			break;
 		}
-		case 's':
-			STR2AVAL(swfUrl, optarg);
-			break;
-		case 't':
-			STR2AVAL(tcUrl, optarg);
-			break;
 		case 'p':
 			STR2AVAL(pageUrl, optarg);
 			break;
 		case 'a':
 			STR2AVAL(app, optarg);
-			break;
-		case 'f':
-			STR2AVAL(flashVer, optarg);
 			break;
 		case 'o':
 			flvFile = optarg;
@@ -600,54 +494,9 @@ int main(int argc, char **argv) {
 				bStdoutMode = FALSE;
 
 			break;
-		case 'e':
-			bResume = TRUE;
-			break;
-		case 'u':
-			STR2AVAL(auth, optarg);
-			break;
-		case 'C': {
-			AVal av;
-			STR2AVAL(av, optarg);
-			if (!RTMP_SetOpt(&rtmp, &av_conn, &av)) {
-				RTMP_Log(RTMP_LOGERROR, "Invalid AMF parameter: %s", optarg);
-				return RD_FAILED;
-			}
-		}
-			break;
-		case 'm':
-			timeout = atoi(optarg);
-			break;
-		case 'A':
-			dStartOffset = (int) (atof(optarg) * 1000.0);
-			break;
-		case 'B':
-			dStopOffset = (int) (atof(optarg) * 1000.0);
-			break;
-		case 'T': {
-			AVal token;
-			STR2AVAL(token, optarg);
-			RTMP_SetOpt(&rtmp, &av_token, &token);
-		}
-			break;
-		case '#':
-			bHashes = TRUE;
-			break;
-		case 'q':
-			RTMP_debuglevel = RTMP_LOGCRIT;
-			break;
-		case 'V':
-			RTMP_debuglevel = RTMP_LOGDEBUG;
-			break;
-		case 'z':
-			RTMP_debuglevel = RTMP_LOGALL;
-			break;
-		case 'S':
-			STR2AVAL(sockshost, optarg);
-			break;
+
 		default:
 			RTMP_LogPrintf("unknown option: %c\n", opt);
-			usage(argv[0]);
 			return RD_FAILED;
 			break;
 		}
