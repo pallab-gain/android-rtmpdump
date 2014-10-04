@@ -7,9 +7,9 @@
 # o = output file
 
 
-./rtmpdump -r "rtmpe://mobs.jagobd.com/tlive" \
+./rtmpdump -v -r "rtmpe://mobs.jagobd.com/tlive" \
 -a "tlive" \
 -W "http://tv.jagobd.com/player/player.swf" \
 -p "http://www.mcaster.tv/channel/somoynews." \
 -y "mp4:sm.stream" \
--o bd-tv.flv
+| vlc -

@@ -44,7 +44,7 @@
 #define DEF_SKIPFRM	0
 
 inline void CleanupSockets() {
-	return ;
+	return;
 }
 
 #ifdef _DEBUG
@@ -430,18 +430,13 @@ int main(int argc, char **argv) {
 	RTMP_Init(&rtmp);
 
 	int opt;
-	struct option longopts[] = {
-			{ "playpath", 1, NULL, 'y' },
-			{ "rtmp", 1, NULL, 'r' },
-			{ "pageUrl", 1, NULL, 'p' },
-			{ "app", 1, NULL, 'a' },
+	struct option longopts[] = { { "playpath", 1, NULL, 'y' }, { "rtmp", 1,
+			NULL, 'r' }, { "pageUrl", 1, NULL, 'p' }, { "app", 1, NULL, 'a' },
 
 #ifdef CRYPTO
-			{ "swfVfy", 1, NULL, 'W' },
+			{ "live", 0, NULL, 'v' }, { "swfVfy", 1, NULL, 'W' },
 #endif
-			 { "flv", 1, NULL, 'o' },
-			 { 0, 0, 0, 0 }
-			};
+			{ "flv", 1, NULL, 'o' }, { 0, 0, 0, 0 } };
 
 	while ((opt = getopt_long(argc, argv,
 			"hVveqzr:s:t:p:a:b:f:o:u:C:n:c:l:y:Ym:k:d:A:B:T:w:x:W:X:S:#",
@@ -453,7 +448,9 @@ int main(int argc, char **argv) {
 			swfVfy = 1;
 			break;
 #endif
-
+		case 'v':
+			bLiveStream = TRUE; // no seeking or resuming possible!
+			break;
 		case 'y':
 			STR2AVAL(playpath, optarg);
 			break;
