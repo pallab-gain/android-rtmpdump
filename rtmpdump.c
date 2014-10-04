@@ -92,13 +92,6 @@ int hex2bin(char *str, char **hex) {
 	return l / 2;
 }
 
-static const AVal av_onMetaData = AVC("onMetaData");
-static const AVal av_duration = AVC("duration");
-static const AVal av_conn = AVC("conn");
-static const AVal av_token = AVC("token");
-static const AVal av_playlist = AVC("playlist");
-static const AVal av_true = AVC("true");
-
 int Download(
 		RTMP * rtmp, // connected RTMP object
 		FILE * file, uint32_t dSeek, uint32_t dStopOffset, double duration,
@@ -118,23 +111,9 @@ int Download(
 
 	*percent = 0.0;
 
-	if (rtmp->m_read.timestamp) {
-		RTMP_Log(RTMP_LOGDEBUG, "Continuing at TS: %d ms\n",
-				rtmp->m_read.timestamp);
-	}
-
-	if (bLiveStream) {
-		RTMP_LogPrintf("Starting Live Stream\n");
-	} else {
-		RTMP_LogPrintf("No Offline Streaming support\n");
-	}
-
-	if (dStopOffset > 0)
-		RTMP_LogPrintf("For duration: %.3f sec\n",
-				(double) (dStopOffset - dSeek) / 1000.0);
-
 	if (bResume && nInitialFrameSize > 0)
 		rtmp->m_read.flags |= RTMP_READ_RESUME;
+
 	rtmp->m_read.initialFrameType = initialFrameType;
 	rtmp->m_read.nResumeTS = dSeek;
 	rtmp->m_read.metaHeader = metaHeader;
@@ -146,7 +125,7 @@ int Download(
 	lastUpdate = now - 1000;
 	do {
 		nRead = RTMP_Read(rtmp, buffer, bufferSize);
-		//RTMP_LogPrintf("nRead: %d\n", nRead);
+		RTMP_LogPrintf("nRead: %d\n", nRead);
 		if (nRead > 0) {
 			if (fwrite(buffer, sizeof(unsigned char), nRead, file)
 					!= (size_t) nRead) {
@@ -624,13 +603,7 @@ int main(int argc, char **argv) {
 			break;
 	}
 
-	if (nStatus == RD_SUCCESS) {
-		RTMP_LogPrintf("Download complete\n");
-	} else if (nStatus == RD_INCOMPLETE) {
-		RTMP_LogPrintf(
-				"Download may be incomplete (downloaded about %.2f%%), try resuming\n",
-				percent);
-	}
+	RTMP_LogPrintf("Done playing....\n");
 
 	clean: RTMP_Log(RTMP_LOGDEBUG, "Closing connection.\n");
 	RTMP_Close(&rtmp);
