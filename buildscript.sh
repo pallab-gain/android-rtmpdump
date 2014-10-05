@@ -11,4 +11,4 @@ ln -s $SYSROOT/usr/lib/crtend_android.o
 ln -s $SYSROOT/usr/lib/crtbegin_dynamic.o
 
 $TOOLCHAIN/bin/arm-linux-androideabi-gcc -Wall -marm -I$OPENSSL_DIR/include -isysroot $SYSROOT -I$SYSROOT/ -DRTMPDUMP_VERSION=\"v2.4\" -c -o rtmpdump.o rtmpdump.c
-$TOOLCHAIN/bin/arm-linux-androideabi-gcc -Wall  -L$OPENSSL_DIR/libs/armeabi -L$SYSROOT/usr/lib  -o rtmpdump rtmpdump.o -Llibrtmp -lrtmp -lssl -lcrypto -lz
+$TOOLCHAIN/bin/arm-linux-androideabi-gcc -Wall -marm -L$OPENSSL_DIR/libs/armeabi -L$SYSROOT/usr/lib  -o rtmpdump rtmpdump.o -Llibrtmp -lrtmp -lssl -lcrypto -lz
