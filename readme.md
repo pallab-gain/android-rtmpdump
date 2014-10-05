@@ -7,7 +7,7 @@ git clone https://github.com/guardianproject/openssl-android.git
 cd openssl-android
 
 goto jni folder, commented out "NDK_TOOLCHAIN_VERSION=4.4.3" from Application.mk
-now run
+Now run....
 ndk-build
 
 #Build rtmpdump for android :
