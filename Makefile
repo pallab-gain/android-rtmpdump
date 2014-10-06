@@ -40,7 +40,7 @@ THREADLIB_mingw=
 THREADLIB=$(THREADLIB_$(SYS))
 SLIBS=$(THREADLIB) $(LIBS)
 
-LIBRTMP=librtmp.a
+LIBRTMP=librtmp/librtmp.a
 INCRTMP=librtmp/rtmp_sys.h librtmp/rtmp.h librtmp/log.h librtmp/amf.h
 
 EXT_posix=
@@ -51,8 +51,22 @@ all:	$(LIBRTMP) progs
 
 progs:	rtmpdump
 
+install:	progs
+	-mkdir -p $(BINDIR) $(SBINDIR) $(MANDIR)/man1 $(MANDIR)/man8
+	cp rtmpdump$(EXT) $(BINDIR)
+	@cd librtmp; $(MAKE) install
+
 clean:
-	rm -f *.o rtmpdump$(EXT) *.so *.a *.so.1
+	rm -f *.o rtmpdump$(EXT)
+	@cd librtmp; $(MAKE) clean
+
+FORCE:
+
+$(LIBRTMP): FORCE
+	@cd librtmp; $(MAKE) all
+
+# note: $^ is GNU Make's equivalent to BSD $>
+# we use both since either make will ignore the one it doesn't recognize
 
 rtmpdump: rtmpdump.o $(LIBRTMP)
 	$(CC) $(LDFLAGS) $^ $> -o $@$(EXT) $(LIBS)
