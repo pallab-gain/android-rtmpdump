@@ -2,7 +2,7 @@
 NDK=/home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk
 SYSROOT=$NDK/platforms/android-19/arch-arm
 TOOLCHAIN=$NDK/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64
-OPENSSL_DIR=/home/pallab/Documents/Development/bd-tv/Try2/openssl-android
+OPENSSL_DIR=`pwd`/../../openssl-android
 
 ln -s $SYSROOT/usr/lib/crtend_so.o
 ln -s $SYSROOT/usr/lib/crtbegin_so.o
