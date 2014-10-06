@@ -748,100 +748,48 @@ int main(int argc, char **argv) {
 	RTMP_Init(&rtmp);
 
 	int opt;
-	struct option longopts[] = {
-			{ "playpath", 1, NULL, 'y' },
-			{ "pageUrl", 1, NULL, 'p' },
+	struct option longopts[] = { { "playpath", 1, NULL, 'y' }, { "pageUrl", 1,
+			NULL, 'p' },
 #ifdef CRYPTO
 			{ "swfVfy", 1, NULL, 'W' },
 #endif
-			{ "app", 1, NULL, 'a' },
-			{ "rtmp", 1, NULL, 'r' },
-			{ "live", 0, NULL, 'v' },
-			{ "flv", 1, NULL, 'o' },
-			{ "timeout", 1, NULL, 'm' },
-			{ "debug", 0, NULL, 'z' },
-			{ "quiet", 0, NULL, 'q' },
-			{ "verbose", 0, NULL, 'V' },
-			{ 0, 0, 0, 0 } };
+			{ "app", 1, NULL, 'a' }, { "rtmp", 1, NULL, 'r' }, { "live", 0,
+					NULL, 'v' }, { "flv", 1, NULL, 'o' }, { "timeout", 1, NULL,
+					'm' }, { "debug", 0, NULL, 'z' }, { "quiet", 0, NULL, 'q' },
+			{ "verbose", 0, NULL, 'V' }, { 0, 0, 0, 0 } };
+	bLiveStream = TRUE; // no seeking or resuming possible!
 
-	while ((opt = getopt_long(argc, argv,
-			"hVveqzr:s:t:p:a:b:f:o:u:C:n:c:l:y:Ym:k:d:A:B:T:w:x:W:X:S:#",
-			longopts, NULL)) != -1) {
-		switch (opt) {
-		case 'v':
-					bLiveStream = TRUE; // no seeking or resuming possible!
-					break;
-		case 'r': {
-			AVal parsedHost, parsedApp, parsedPlaypath;
-			unsigned int parsedPort = 0;
-			int parsedProtocol = RTMP_PROTOCOL_UNDEFINED;
 
-			if (!RTMP_ParseURL(optarg, &parsedProtocol, &parsedHost,
-					&parsedPort, &parsedPlaypath, &parsedApp)) {
-				RTMP_Log(RTMP_LOGWARNING,
-						"Couldn't parse the specified url (%s)!", optarg);
-			} else {
-				if (!hostname.av_len)
-					hostname = parsedHost;
-				if (port == -1)
-					port = parsedPort;
-				if (playpath.av_len == 0 && parsedPlaypath.av_len) {
-					playpath = parsedPlaypath;
-				}
-				if (protocol == RTMP_PROTOCOL_UNDEFINED)
-					protocol = parsedProtocol;
-				if (app.av_len == 0 && parsedApp.av_len) {
-					app = parsedApp;
-				}
-			}
-			break;
+	AVal parsedHost, parsedApp, parsedPlaypath;
+	unsigned int parsedPort = 0;
+	int parsedProtocol = RTMP_PROTOCOL_UNDEFINED;
+
+	if (!RTMP_ParseURL("rtmpe://mobs.jagobd.com/tlive", &parsedProtocol, &parsedHost,
+			&parsedPort, &parsedPlaypath, &parsedApp)) {
+		RTMP_Log(RTMP_LOGWARNING,
+				"Couldn't parse the specified url (%s)!", optarg);
+	} else {
+		if (!hostname.av_len)
+			hostname = parsedHost;
+		if (port == -1)
+			port = parsedPort;
+		if (playpath.av_len == 0 && parsedPlaypath.av_len) {
+			playpath = parsedPlaypath;
 		}
-		case 'a':
-					STR2AVAL(app, optarg);
-					break;
+		if (protocol == RTMP_PROTOCOL_UNDEFINED)
+			protocol = parsedProtocol;
+		if (app.av_len == 0 && parsedApp.av_len) {
+			app = parsedApp;
+		}
+	}
+	STR2AVAL(app, "tlive");
 #ifdef CRYPTO
-		case 'W':
-			STR2AVAL(swfUrl, optarg);
-			swfVfy = 1;
-			break;
+	STR2AVAL(swfUrl, "http://tv.jagobd.com/player/player.swf");
+	swfVfy = 1;
 #endif
-		case 'p':
-			STR2AVAL(pageUrl, optarg);
-			break;
+	STR2AVAL(pageUrl, "http://www.mcaster.tv/channel/somoynews.");
+	STR2AVAL(playpath, "mp4:sm.stream");
 
-		case 'y':
-			  STR2AVAL(playpath, optarg);
-			  break;
-
-		default:
-			RTMP_LogPrintf("unknown option: %c\n", opt);
-			usage(argv[0]);
-			return RD_FAILED;
-			break;
-		}
-	}
-
-	if (!hostname.av_len) {
-		RTMP_Log(RTMP_LOGERROR,
-				"You must specify a hostname (--host) or url (-r \"rtmp://host[:port]/playpath\") containing a hostname");
-		return RD_FAILED;
-	}
-	if (playpath.av_len == 0) {
-		RTMP_Log(RTMP_LOGERROR,
-				"You must specify a playpath (--playpath) or url (-r \"rtmp://host[:port]/playpath\") containing a playpath");
-		return RD_FAILED;
-	}
-
-	if (protocol == RTMP_PROTOCOL_UNDEFINED) {
-		RTMP_Log(RTMP_LOGWARNING,
-				"You haven't specified a protocol (--protocol) or rtmp url (-r), using default protocol RTMP");
-		protocol = RTMP_PROTOCOL_RTMP;
-	}
-	if (port == -1) {
-		RTMP_Log(RTMP_LOGWARNING,
-				"You haven't specified a port (--port) or rtmp url (-r), using default port 1935");
-		port = 0;
-	}
 	if (port == 0) {
 		if (protocol & RTMP_FEATURE_SSL)
 			port = 443;
