@@ -1,28 +1,13 @@
 One step at a time.... 
 Commits will be victorious  
 
-#Build openssl for android :
-
-git clone https://github.com/guardianproject/openssl-android.git
-
-cd openssl-android
-
-goto jni folder, commented out "NDK_TOOLCHAIN_VERSION=4.4.3" from Application.mk
-
-Now run....
-
-ndk-build
-
 #Build rtmpdump for android :
+
+Get Latest rtmpdump code from here
 
 git clone git://git.ffmpeg.org/rtmpdump
 
-copy librtmpbuildscript.sh into librtmp folder
+We only need librtmp... See samples librtmp folder to get an idea of which files we need
 
-cd librtmp
+Write our own code in dump folder ... Simple Hello World code just added now... Will add complete code by the time I finished it.
 
-sh librtmpbuildscript.sh
-
-cd ..
-
-sh buildscript.sh
