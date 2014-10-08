@@ -88,10 +88,10 @@ JNIEXPORT jint JNICALL Java_nativeutils_MyRtmp_CallMain(JNIEnv *env,
 		jclass jcls, jstring _rtmpUrl, jstring _appName, jstring _SWFUrl,
 		jstring _pageUrl, jstring _playPath) {
 	const char *rtmp_url = (*env)->GetStringUTFChars(env, _rtmpUrl, 0);
-	char *app_name = (*env)->GetStringUTFChars(env, _appName, 0);
-	char *swf_url = (*env)->GetStringUTFChars(env, _SWFUrl, 0);
-	char *page_url = (*env)->GetStringUTFChars(env, _pageUrl, 0);
-	char *play_path = (*env)->GetStringUTFChars(env, _playPath, 0);
+	char *app_name = (char *)(*env)->GetStringUTFChars(env, _appName, 0);
+	char *swf_url = (char *)(*env)->GetStringUTFChars(env, _SWFUrl, 0);
+	char *page_url = (char *)(*env)->GetStringUTFChars(env, _pageUrl, 0);
+	char *play_path = (char *)(*env)->GetStringUTFChars(env, _playPath, 0);
 
 	//BEGIN (RTMP INI)
 	int nStatus = RD_SUCCESS;
@@ -156,7 +156,6 @@ JNIEXPORT jint JNICALL Java_nativeutils_MyRtmp_CallMain(JNIEnv *env,
 	signal(SIGQUIT, sigIntHandler);
 #endif
 
-	RTMP_debuglevel = RTMP_LOGINFO;
 	if (!InitSockets()) {
 		return RD_FAILED;
 	}
@@ -262,6 +261,21 @@ JNIEXPORT jint JNICALL Java_nativeutils_MyRtmp_CallMain(JNIEnv *env,
 	//END (RTMP INI )
 
 	//START ( TRYING TO CONNECT )
+	{
+		LOGE("Setting buffer time %d ms", bufferTime);
+		RTMP_SetBufferMS(&rtmp, bufferTime);
+
+		LOGE("Connecting....");
+		if (!RTMP_Connect(&rtmp, NULL)) {
+			LOGE("Failed to connect!");
+			nStatus = RD_FAILED;
+		}
+		LOGE("Connected!");
+		if (!RTMP_ConnectStream(&rtmp, dSeek)) {
+			LOGE("Failed to connect stream ");
+			nStatus = RD_FAILED;
+		}
+	}
 	//END ( TRYING TO CONNECT )
 
 	clean: LOGE("CLOSING CONNECTION");
