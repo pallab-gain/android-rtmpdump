@@ -9,11 +9,11 @@ extern "C" {
 #endif
 /*
  * Class:     nativeutils_MyRtmp
- * Method:    getStringFromNative
- * Signature: ()Ljava/lang/String;
+ * Method:    CallMain
+ * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)I
  */
-JNIEXPORT jstring JNICALL Java_nativeutils_MyRtmp_getStringFromNative
-  (JNIEnv *, jclass);
+JNIEXPORT jint JNICALL Java_nativeutils_MyRtmp_CallMain
+  (JNIEnv *, jclass, jstring, jstring, jstring, jstring, jstring);
 
 #ifdef __cplusplus
 }

@@ -338,32 +338,32 @@ RTMP_SetupStream(RTMP *r,
 		 int dStart,
 		 int dStop, int bLiveStream, long int timeout)
 {
-  RTMP_Log(RTMP_LOGDEBUG, "Protocol : %s", RTMPProtocolStrings[protocol&7]);
-  RTMP_Log(RTMP_LOGDEBUG, "Hostname : %.*s", host->av_len, host->av_val);
-  RTMP_Log(RTMP_LOGDEBUG, "Port     : %d", port);
-  RTMP_Log(RTMP_LOGDEBUG, "Playpath : %s", playpath->av_val);
+	RTMP_Log(RTMP_LOGDEBUG, "Protocol : %s", RTMPProtocolStrings[protocol & 7]);
+	RTMP_Log(RTMP_LOGDEBUG, "Hostname : %.*s", host->av_len, host->av_val);
+	RTMP_Log(RTMP_LOGDEBUG, "Port     : %d", port);
+	RTMP_Log(RTMP_LOGDEBUG, "Playpath : %s", playpath->av_val);
 
-  if (tcUrl && tcUrl->av_val)
-    RTMP_Log(RTMP_LOGDEBUG, "tcUrl    : %s", tcUrl->av_val);
-  if (swfUrl && swfUrl->av_val)
-    RTMP_Log(RTMP_LOGDEBUG, "swfUrl   : %s", swfUrl->av_val);
-  if (pageUrl && pageUrl->av_val)
-    RTMP_Log(RTMP_LOGDEBUG, "pageUrl  : %s", pageUrl->av_val);
-  if (app && app->av_val)
-    RTMP_Log(RTMP_LOGDEBUG, "app      : %.*s", app->av_len, app->av_val);
-  if (auth && auth->av_val)
-    RTMP_Log(RTMP_LOGDEBUG, "auth     : %s", auth->av_val);
-  if (subscribepath && subscribepath->av_val)
-    RTMP_Log(RTMP_LOGDEBUG, "subscribepath : %s", subscribepath->av_val);
-  if (flashVer && flashVer->av_val)
-    RTMP_Log(RTMP_LOGDEBUG, "flashVer : %s", flashVer->av_val);
-  if (dStart > 0)
-    RTMP_Log(RTMP_LOGDEBUG, "StartTime     : %d msec", dStart);
-  if (dStop > 0)
-    RTMP_Log(RTMP_LOGDEBUG, "StopTime      : %d msec", dStop);
+	if (tcUrl && tcUrl->av_val)
+		RTMP_Log(RTMP_LOGDEBUG, "tcUrl    : %s", tcUrl->av_val);
+	if (swfUrl && swfUrl->av_val)
+		RTMP_Log(RTMP_LOGDEBUG, "swfUrl   : %s", swfUrl->av_val);
+	if (pageUrl && pageUrl->av_val)
+		RTMP_Log(RTMP_LOGDEBUG, "pageUrl  : %s", pageUrl->av_val);
+	if (app && app->av_val)
+		RTMP_Log(RTMP_LOGDEBUG, "app      : %.*s", app->av_len, app->av_val);
+	if (auth && auth->av_val)
+		RTMP_Log(RTMP_LOGDEBUG, "auth     : %s", auth->av_val);
+	if (subscribepath && subscribepath->av_val)
+		RTMP_Log(RTMP_LOGDEBUG, "subscribepath : %s", subscribepath->av_val);
+	if (flashVer && flashVer->av_val)
+		RTMP_Log(RTMP_LOGDEBUG, "flashVer : %s", flashVer->av_val);
+	if (dStart > 0)
+		RTMP_Log(RTMP_LOGDEBUG, "StartTime     : %d msec", dStart);
+	if (dStop > 0)
+		RTMP_Log(RTMP_LOGDEBUG, "StopTime      : %d msec", dStop);
 
-  RTMP_Log(RTMP_LOGDEBUG, "live     : %s", bLiveStream ? "yes" : "no");
-  RTMP_Log(RTMP_LOGDEBUG, "timeout  : %d sec", timeout);
+	RTMP_Log(RTMP_LOGDEBUG, "live     : %s", bLiveStream ? "yes" : "no");
+	RTMP_Log(RTMP_LOGDEBUG, "timeout  : %d sec", timeout);
 
 #ifdef CRYPTO
   if (swfSHA256Hash != NULL && swfSize > 0)

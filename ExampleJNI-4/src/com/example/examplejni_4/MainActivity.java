@@ -8,12 +8,20 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 public class MainActivity extends Activity {
+	public final String tag = "FromJAVA";
+
+	private final String rtmpUrl = "rtmpe://mobs.jagobd.com/tlive";
+	private final String appName = "tlive";
+	private final String SWFUrl = "http://tv.jagobd.com/player/player.swf";
+	private final String pageUrl = "http://www.mcaster.tv/channel/somoynews.";
+	private final String playPath = "mp4:sm.stream";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		Log.e("YEO-3x", MyRtmp.getStringFromNative());
+		MyRtmp.CallMain(rtmpUrl, appName, SWFUrl, pageUrl, playPath);
+		Log.e(tag, "main function called");
 	}
 
 	@Override
