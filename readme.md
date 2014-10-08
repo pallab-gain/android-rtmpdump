@@ -11,3 +11,4 @@ We only need librtmp... See samples librtmp folder to get an idea of which files
 
 Write our own code in dump folder ... Simple Hello World code just added now... Will add complete code by the time I finished it.
 
+Checkout example branch for sample code. It's in baby phase. I just started writing it ....
