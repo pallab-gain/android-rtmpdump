@@ -6,6 +6,8 @@ import android.os.Environment;
 import android.util.Log;
 
 public class Helper {
+	public static String filePath = null;
+
 	public static File getOutputMediaFile() {
 		if (!Environment.getExternalStorageState().equalsIgnoreCase(
 				Environment.MEDIA_MOUNTED)) {
@@ -29,6 +31,19 @@ public class Helper {
 		if (mediaFile.exists()) {
 			mediaFile.delete();
 		}
+		filePath = mediaFile.toString();
 		return mediaFile;
+	}
+
+	public static void removeFile() {
+		if (filePath != null) {
+			File mediaFile = new File(getFilePath());
+			mediaFile.delete();
+		}
+
+	}
+
+	public static String getFilePath() {
+		return filePath;
 	}
 }

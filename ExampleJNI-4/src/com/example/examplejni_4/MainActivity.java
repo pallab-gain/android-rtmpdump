@@ -1,9 +1,15 @@
 package com.example.examplejni_4;
 
+import java.io.File;
+
 import nativeutils.MyRtmp;
+import Others.Helper;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -12,9 +18,12 @@ import android.widget.MediaController;
 import android.widget.ToggleButton;
 import android.widget.VideoView;
 
+@SuppressLint("NewApi")
 public class MainActivity extends Activity {
 	public final String tag = "FromJAVA";
 	MyRtmp rtmp = new MyRtmp();
+	VideoView mVideoView;
+	static Integer pos = 0;
 
 	private final String rtmpUrl = "rtmpe://mobs.jagobd.com/tlive";
 	private final String appName = "tlive";
@@ -24,17 +33,23 @@ public class MainActivity extends Activity {
 	public static String filePath = null;
 	ToggleButton toggleButton;
 
-	// START ( VIDEO VIEW VARIABLES )
-	private VideoView mVideoView = null;
-
-	// END ( VIDEO VIEW VARIABLES )
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		toggleButton = (ToggleButton) findViewById(R.id.toggleButton1);
 		mVideoView = (VideoView) findViewById(R.id.video_view);
+		mVideoView
+				.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
 
+					@Override
+					public void onCompletion(MediaPlayer arg0) {
+						// TODO Auto-generated method stub
+						// try to resume the view
+						resumeVideo(mVideoView.getCurrentPosition());
+					}
+
+				});
+		toggleButton = (ToggleButton) findViewById(R.id.toggleButton1);
 		toggleButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
@@ -46,6 +61,7 @@ public class MainActivity extends Activity {
 
 						@Override
 						public void run() {
+							// get the filepath
 							filePath = Others.Helper.getOutputMediaFile()
 									.toString();
 							int status = rtmp.startRecording(rtmpUrl, appName,
@@ -53,18 +69,14 @@ public class MainActivity extends Activity {
 							Log.e(tag, "" + status);
 						}
 					}).start();
-					while (true) {
-						if (filePath != null) {
-							runOnUiThread(new Runnable() {
-								@Override
-								public void run() {
-									// TODO Auto-generated method stub
-									playVideo();
-								}
-							});
-							break;
+
+					runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							// TODO Auto-generated method stub
+							playVideo();
 						}
-					}
+					});
 
 				} else {
 					Log.e(tag, "stop recording");
@@ -77,6 +89,7 @@ public class MainActivity extends Activity {
 				}
 			}
 		});
+
 	}
 
 	@Override
@@ -98,12 +111,40 @@ public class MainActivity extends Activity {
 		return super.onOptionsItemSelected(item);
 	}
 
+	private void resumeVideo(final Integer poos) {
+		if (MyRtmp.isRecording == true) {
+			String filepath = Helper.getFilePath();
+			if (filepath != null) {
+				mVideoView.setVideoPath(filepath);
+				mVideoView.seekTo(poos);
+				mVideoView.start();
+			}else{
+				;
+			}
+		} else {
+			Log.e(tag, "not recording...!");
+		}
+	}
+
 	private void playVideo() {
 		try {
-			// If the path has not changed, just start the media player
-			mVideoView.setVideoPath(getDataSource());
-			mVideoView.start();
-			mVideoView.requestFocus();
+			final Handler handler = new Handler();
+			handler.postDelayed(new Runnable() {
+				@Override
+				public void run() {
+					// Do something after 5s = 5000ms
+					if (readyToPlay() == true) {
+						String filepath = Helper.getFilePath();
+						if (filepath != null) {
+							mVideoView.setVideoPath(filepath);
+							mVideoView.start();
+							mVideoView.requestFocus();
+						}
+					} else {
+						playVideo();
+					}
+				}
+			}, 1000 * 5); // 5 second delay
 		} catch (Exception e) {
 			Log.e(tag, "Exception " + e.toString());
 			if (mVideoView != null) {
@@ -112,7 +153,10 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	private String getDataSource() {
-		return filePath;
+	private boolean readyToPlay() {
+		if (Helper.getFilePath() == null)
+			return false;
+		File file = new File(Helper.getFilePath());
+		return file.length() >= 1024 ? true : false;
 	}
 }

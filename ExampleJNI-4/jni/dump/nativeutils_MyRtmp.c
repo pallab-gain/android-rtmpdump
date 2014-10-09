@@ -132,7 +132,7 @@ static int Download(
 		lastUpdate = now - 1000;
 		do {
 			nRead = RTMP_Read(rtmp, buffer, bufferSize);
-			LOGE("nRead: %d\n", nRead);
+//			LOGE("nRead: %d\n", nRead);
 			if (nRead > 0) {
 				if (fwrite(buffer, sizeof(unsigned char), nRead, file)
 						!= (size_t) nRead) {

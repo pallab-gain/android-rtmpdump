@@ -1,10 +1,11 @@
 package nativeutils;
 
+import Others.Helper;
 import android.util.Log;
 
 public class MyRtmp {
 	private final static String tag = "NativeLoader";
-	private static boolean isRecording = false;
+	public static boolean isRecording = false;
 
 	public native int CallMain(String rtmpUrl, String appName, String SWFUrl,
 			String pageUrl, String playPath, String filePath);
@@ -21,6 +22,7 @@ public class MyRtmp {
 			// stop recording
 			stopNativeRecording();
 		}
+		isRecording=true;
 		int status = CallMain(rtmpUrl, appName, SWFUrl, pageUrl, playPath,
 				filePath);
 		return status;
@@ -29,6 +31,7 @@ public class MyRtmp {
 	public void stopRecording() {
 		isRecording = false;
 		stopNativeRecording();
+		Helper.removeFile();
 	}
 
 	static {
