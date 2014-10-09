@@ -6,22 +6,53 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ToggleButton;
 
 public class MainActivity extends Activity {
 	public final String tag = "FromJAVA";
-	MyRtmp rtmp= new MyRtmp();
+	MyRtmp rtmp = new MyRtmp();
 	private final String rtmpUrl = "rtmpe://mobs.jagobd.com/tlive";
 	private final String appName = "tlive";
 	private final String SWFUrl = "http://tv.jagobd.com/player/player.swf";
 	private final String pageUrl = "http://www.mcaster.tv/channel/somoynews.";
 	private final String playPath = "mp4:sm.stream";
+	public static String filePath;
+	ToggleButton toggleButton;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		rtmp.CallMain(rtmpUrl, appName, SWFUrl, pageUrl, playPath);
-		Log.e(tag, "main function called");
+		toggleButton = (ToggleButton) findViewById(R.id.toggleButton1);
+		/*
+		 * rtmp.CallMain(rtmpUrl, appName, SWFUrl, pageUrl, playPath, filepath);
+		 * Log.e(tag, "main function called");
+		 */
+		toggleButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				if (((ToggleButton) view).isChecked()) {
+					Log.e(tag, "start recording");
+					// start recoding
+					new Thread(new Runnable() {
+						@Override
+						public void run() {
+							// TODO Auto-generated method stub
+							filePath = Others.Helper.getOutputMediaFile()
+									.toString();
+							int status = rtmp.startRecording(rtmpUrl, appName,
+									SWFUrl, pageUrl, playPath, filePath);
+							Log.e(tag, "" + status);
+						}
+					}).start();
+				} else {
+					Log.e(tag, "stop recording");
+					// stop recording
+					rtmp.stopRecording();
+				}
+			}
+		});
 	}
 
 	@Override

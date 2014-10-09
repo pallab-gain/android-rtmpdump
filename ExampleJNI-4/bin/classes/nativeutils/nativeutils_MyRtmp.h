@@ -12,8 +12,8 @@ extern "C" {
  * Method:    CallMain
  * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_nativeutils_MyRtmp_CallMain(JNIEnv *, jobject,
-		jstring, jstring, jstring, jstring, jstring, jstring);
+JNIEXPORT jint JNICALL Java_nativeutils_MyRtmp_CallMain
+  (JNIEnv *, jobject, jstring, jstring, jstring, jstring, jstring, jstring);
 
 /*
  * Class:     nativeutils_MyRtmp
@@ -21,7 +21,7 @@ JNIEXPORT jint JNICALL Java_nativeutils_MyRtmp_CallMain(JNIEnv *, jobject,
  * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_nativeutils_MyRtmp_stopNativeRecording
-(JNIEnv *, jobject);
+  (JNIEnv *, jobject);
 
 #ifdef __cplusplus
 }

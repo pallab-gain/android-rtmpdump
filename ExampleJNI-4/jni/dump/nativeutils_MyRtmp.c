@@ -51,8 +51,8 @@ uint32_t nIgnoredFlvFrameCounter = 0;
 uint32_t nIgnoredFrameCounter = 0;
 #define MAX_IGNORED_FRAMES	50
 
-FILE *file = 0;
 
+FILE *file = 0;
 void sigIntHandler(int sig) {
 	RTMP_ctrlC = TRUE;
 	RTMP_LogPrintf("Caught signal: %d, cleaning up, just a second...\n", sig);
@@ -90,6 +90,7 @@ void wait(double seconds) {
 	}
 }
 #define STR2AVAL(av,str)	av.av_val = str; av.av_len = strlen(av.av_val)
+#define STR2SingleAVAL(av,str)	av = str
 
 static JavaVM * gJavaVM;
 static jobject _gObject;
@@ -102,43 +103,6 @@ static int Download(
 		char *initialFrame, int initialFrameType, uint32_t nInitialFrameSize,
 		int nSkipKeyFrames, int bStdoutMode, int bLiveStream, int bHashes,
 		int bOverrideBufferTime, uint32_t bufferTime, double *percent) {
-	LOGE("Download Called called");
-	JNIEnv * g_env;
-	int isAttached = FALSE;
-	int getEnvStat = (*gJavaVM)->GetEnv(gJavaVM, (void **) &g_env,
-			JNI_VERSION_1_6);
-	jmethodID method_id;
-	if (getEnvStat == JNI_EDETACHED) {
-		LOGE("GetEnv: not attached");
-		int status = (*gJavaVM)->AttachCurrentThread(gJavaVM, &g_env, NULL);
-		if (status != 0) {
-			LOGE("Failed to attach");
-			return RD_FAILED;
-		}
-		isAttached = TRUE;
-	} else if (getEnvStat == JNI_OK) {
-		LOGE("NICE ready to call a callback");
-		method_id = (*g_env)->GetStaticMethodID(g_env, _gClass, "callback",
-				"()V");
-		if (!method_id) {
-			LOGE("failed to get method id");
-			if (isAttached) {
-				if (isAttached == TRUE) {
-					(*gJavaVM)->DetachCurrentThread(gJavaVM);
-				}
-				return RD_FAILED;
-			}
-		}
-	} else if (getEnvStat == JNI_EVERSION) {
-		LOGE("GetEnv: version not supported");
-		return RD_FAILED;
-	}
-//	int xx = 0;
-//	while (xx < 10) {
-//		(*g_env)->CallStaticVoidMethod(g_env, _gClass, method_id);
-//		wait(1);
-//		++xx;
-//	}
 
 //	START ( DOWNLOAD THE STREAM )
 	{
@@ -170,13 +134,12 @@ static int Download(
 			nRead = RTMP_Read(rtmp, buffer, bufferSize);
 			LOGE("nRead: %d\n", nRead);
 			if (nRead > 0) {
-//				if (fwrite(buffer, sizeof(unsigned char), nRead, file)
-//						!= (size_t) nRead) {
-//					RTMP_Log(RTMP_LOGERROR, "%s: Failed writing, exiting!",
-//							__FUNCTION__);
-//					free(buffer);
-//					return RD_FAILED;
-//				}
+				if (fwrite(buffer, sizeof(unsigned char), nRead, file)
+						!= (size_t) nRead) {
+					LOGE("%s: Failed writing, exiting!", __FUNCTION__);
+					free(buffer);
+					return RD_FAILED;
+				}
 				size += nRead;
 				if (duration <= 0) // if duration unknown try to get it from the stream (onMetaData)
 					duration = RTMP_GetDuration(rtmp);
@@ -224,7 +187,6 @@ static int Download(
 		}
 
 		LOGE("RTMP_Read returned: %d", nRead);
-
 		if (bResume && nRead == -2) {
 			RTMP_LogPrintf("Couldn't resume FLV file, try --skip %d\n\n",
 					nSkipKeyFrames + 1);
@@ -241,10 +203,6 @@ static int Download(
 
 	}
 //	END ( DOWNLOAD THE STREAM)
-	if (isAttached == TRUE) {
-		(*gJavaVM)->DetachCurrentThread(gJavaVM);
-	}
-
 	return RD_SUCCESS;
 }
 
@@ -276,7 +234,7 @@ void JNI_OnUnload(JavaVM *vm, void *reserved) {
 }
 JNIEXPORT jint JNICALL Java_nativeutils_MyRtmp_CallMain(JNIEnv *env,
 		jobject job, jstring _rtmpUrl, jstring _appName, jstring _SWFUrl,
-		jstring _pageUrl, jstring _playPath) {
+		jstring _pageUrl, jstring _playPath, jstring _filePath) {
 	//BEGIN (CACHE IT)
 	_gObject = (jobject)(*env)->NewGlobalRef(env, job);
 	jclass clazz = (*env)->GetObjectClass(env, job);
@@ -287,6 +245,7 @@ JNIEXPORT jint JNICALL Java_nativeutils_MyRtmp_CallMain(JNIEnv *env,
 	char *swf_url = (char *) (*env)->GetStringUTFChars(env, _SWFUrl, 0);
 	char *page_url = (char *) (*env)->GetStringUTFChars(env, _pageUrl, 0);
 	char *play_path = (char *) (*env)->GetStringUTFChars(env, _playPath, 0);
+	char *file_path = (char *) (*env)->GetStringUTFChars(env, _filePath, 0);
 
 	//BEGIN (RTMP INI)
 	int nStatus = RD_SUCCESS;
@@ -388,6 +347,9 @@ JNIEXPORT jint JNICALL Java_nativeutils_MyRtmp_CallMain(JNIEnv *env,
 #endif
 	STR2AVAL(pageUrl, page_url);
 	STR2AVAL(playpath, play_path);
+	//write to file
+	STR2SingleAVAL(flvFile, file_path);
+	bStdoutMode = FALSE;
 
 	if (port == 0) {
 		if (protocol & RTMP_FEATURE_SSL)
@@ -396,12 +358,6 @@ JNIEXPORT jint JNICALL Java_nativeutils_MyRtmp_CallMain(JNIEnv *env,
 			port = 80;
 		else
 			port = 1935;
-	}
-
-	if (flvFile == 0) {
-		LOGE(
-				"You haven't specified an output file (-o filename), using stdout");
-		bStdoutMode = TRUE;
 	}
 
 #ifdef CRYPTO
@@ -444,19 +400,21 @@ JNIEXPORT jint JNICALL Java_nativeutils_MyRtmp_CallMain(JNIEnv *env,
 	if (!bLiveStream && !(protocol & RTMP_FEATURE_HTTP)) {
 		rtmp.Link.lFlags |= RTMP_LF_BUFX;
 	}
-	if (!file) {
-		if (bStdoutMode) {
-			file = stdout;
-			SET_BINMODE(file);
-		} else {
-			LOGE("NOT SUPPORTING WRITE TO FILE! REAL TIME FOR NOW");
+//	if (!file) {
+	if (bStdoutMode) {
+		file = stdout;
+		SET_BINMODE(file);
+	} else {
+		file = fopen(flvFile, "w+b");
+		if (file == 0) {
+			LOGE("Cannot write to file sorry!");
 			return RD_FAILED;
 		}
 	}
-	//END (RTMP INI )
+//	}
+//END (RTMP INI )
 
-	//START ( TRYING TO CONNECT )
-
+//START ( TRYING TO CONNECT )
 	{
 		LOGE("Setting buffer time %d ms", bufferTime);
 		RTMP_SetBufferMS(&rtmp, bufferTime);
@@ -476,10 +434,14 @@ JNIEXPORT jint JNICALL Java_nativeutils_MyRtmp_CallMain(JNIEnv *env,
 	if (nStatus == RD_SUCCESS) {
 		//A SUCCESSFUL CONNECTION
 		//Go get the stream
-		nStatus = Download(&rtmp, file, dSeek, dStopOffset, duration, bResume,
-				metaHeader, nMetaHeaderSize, initialFrame, initialFrameType,
-				nInitialFrameSize, nSkipKeyFrames, bStdoutMode, bLiveStream,
-				bHashes, bOverrideBufferTime, bufferTime, &percent);
+		RTMP_ctrlC = FALSE;
+
+		nStatus = Download(&rtmp, file, dSeek, dStopOffset, duration,
+				bResume, metaHeader, nMetaHeaderSize, initialFrame,
+				initialFrameType, nInitialFrameSize, nSkipKeyFrames,
+				bStdoutMode, bLiveStream, bHashes, bOverrideBufferTime,
+				bufferTime, &percent);
+
 		free(initialFrame);
 		initialFrame = NULL;
 	}
@@ -491,12 +453,16 @@ JNIEXPORT jint JNICALL Java_nativeutils_MyRtmp_CallMain(JNIEnv *env,
 
 	CleanupSockets();
 
-	//RELEASE THE DRAGOOOON
+//RELEASE THE DRAGOOOON
 	(*env)->ReleaseStringUTFChars(env, _rtmpUrl, rtmp_url);
 	(*env)->ReleaseStringUTFChars(env, _appName, app_name);
 	(*env)->ReleaseStringUTFChars(env, _SWFUrl, swf_url);
 	(*env)->ReleaseStringUTFChars(env, _pageUrl, page_url);
-	(*env)->ReleaseStringUTFChars(env, _playPath, play_path);
+	(*env)->ReleaseStringUTFChars(env, _filePath, file_path);
 	return nStatus;
 }
 
+JNIEXPORT void JNICALL Java_nativeutils_MyRtmp_stopNativeRecording
+(JNIEnv *env, jobject job) {
+	RTMP_ctrlC = TRUE;
+}
