@@ -34,12 +34,15 @@ obj/local/armeabi/objs/dump/dump/nativeutils_MyRtmp.o: \
  /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/sys/syslimits.h \
  /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/asm/page.h \
  /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/stdio.h \
+ /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/time.h \
+ /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/sys/time.h \
+ /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/linux/time.h \
+ /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/asm/siginfo.h \
+ /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/asm-generic/siginfo.h \
  /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/signal.h \
  /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/asm/signal.h \
  /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/asm-generic/signal.h \
  /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/asm/sigcontext.h \
- /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/asm/siginfo.h \
- /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/asm-generic/siginfo.h \
  /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/getopt.h \
  jni/librtmp/rtmp_sys.h \
  /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/sys/socket.h \
@@ -66,8 +69,6 @@ obj/local/armeabi/objs/dump/dump/nativeutils_MyRtmp.o: \
  /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/netinet/in6.h \
  /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/unistd.h \
  /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/sys/select.h \
- /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/sys/time.h \
- /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/linux/time.h \
  /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/sys/sysconf.h \
  /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/linux/capability.h \
  /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/pathconf.h \
@@ -149,6 +150,16 @@ jni/dump/nativeutils_MyRtmp.h:
 
 /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/stdio.h:
 
+/home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/time.h:
+
+/home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/sys/time.h:
+
+/home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/linux/time.h:
+
+/home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/asm/siginfo.h:
+
+/home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/asm-generic/siginfo.h:
+
 /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/signal.h:
 
 /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/asm/signal.h:
@@ -156,10 +167,6 @@ jni/dump/nativeutils_MyRtmp.h:
 /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/asm-generic/signal.h:
 
 /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/asm/sigcontext.h:
-
-/home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/asm/siginfo.h:
-
-/home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/asm-generic/siginfo.h:
 
 /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/getopt.h:
 
@@ -212,10 +219,6 @@ jni/librtmp/rtmp_sys.h:
 /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/unistd.h:
 
 /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/sys/select.h:
-
-/home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/sys/time.h:
-
-/home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/linux/time.h:
 
 /home/pallab/Documents/adt-bundle-linux-x86_64-20140702/ndk/platforms/android-19/arch-arm/usr/include/sys/sysconf.h:
 

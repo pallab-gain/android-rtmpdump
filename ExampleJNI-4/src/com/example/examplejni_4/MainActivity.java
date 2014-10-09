@@ -9,7 +9,7 @@ import android.view.MenuItem;
 
 public class MainActivity extends Activity {
 	public final String tag = "FromJAVA";
-
+	MyRtmp rtmp= new MyRtmp();
 	private final String rtmpUrl = "rtmpe://mobs.jagobd.com/tlive";
 	private final String appName = "tlive";
 	private final String SWFUrl = "http://tv.jagobd.com/player/player.swf";
@@ -20,7 +20,7 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		MyRtmp.CallMain(rtmpUrl, appName, SWFUrl, pageUrl, playPath);
+		rtmp.CallMain(rtmpUrl, appName, SWFUrl, pageUrl, playPath);
 		Log.e(tag, "main function called");
 	}
 

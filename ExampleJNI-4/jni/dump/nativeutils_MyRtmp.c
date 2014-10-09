@@ -12,6 +12,7 @@
 #include <string.h>
 #include <math.h>
 #include <stdio.h>
+#include <time.h>
 
 #include <signal.h>		// to catch Ctrl-C
 #include <getopt.h>
@@ -82,16 +83,210 @@ int hex2bin(char *str, char **hex) {
 		*ptr++ = (HEX2BIN(str[i]) << 4) | HEX2BIN(str[i+1]);
 	return l / 2;
 }
+void wait(double seconds) {
+	double endtime = clock() + (seconds * CLOCKS_PER_SEC);
+	while (clock() < endtime) {
+		;
+	}
+}
 #define STR2AVAL(av,str)	av.av_val = str; av.av_len = strlen(av.av_val)
 
+static JavaVM * gJavaVM;
+static jobject _gObject;
+static jclass _gClass;
+
+static int Download(
+		RTMP * rtmp, // connected RTMP object
+		FILE * file, uint32_t dSeek, uint32_t dStopOffset, double duration,
+		int bResume, char *metaHeader, uint32_t nMetaHeaderSize,
+		char *initialFrame, int initialFrameType, uint32_t nInitialFrameSize,
+		int nSkipKeyFrames, int bStdoutMode, int bLiveStream, int bHashes,
+		int bOverrideBufferTime, uint32_t bufferTime, double *percent) {
+	LOGE("Download Called called");
+	JNIEnv * g_env;
+	int isAttached = FALSE;
+	int getEnvStat = (*gJavaVM)->GetEnv(gJavaVM, (void **) &g_env,
+			JNI_VERSION_1_6);
+	jmethodID method_id;
+	if (getEnvStat == JNI_EDETACHED) {
+		LOGE("GetEnv: not attached");
+		int status = (*gJavaVM)->AttachCurrentThread(gJavaVM, &g_env, NULL);
+		if (status != 0) {
+			LOGE("Failed to attach");
+			return RD_FAILED;
+		}
+		isAttached = TRUE;
+	} else if (getEnvStat == JNI_OK) {
+		LOGE("NICE ready to call a callback");
+		method_id = (*g_env)->GetStaticMethodID(g_env, _gClass, "callback",
+				"()V");
+		if (!method_id) {
+			LOGE("failed to get method id");
+			if (isAttached) {
+				if (isAttached == TRUE) {
+					(*gJavaVM)->DetachCurrentThread(gJavaVM);
+				}
+				return RD_FAILED;
+			}
+		}
+	} else if (getEnvStat == JNI_EVERSION) {
+		LOGE("GetEnv: version not supported");
+		return RD_FAILED;
+	}
+//	int xx = 0;
+//	while (xx < 10) {
+//		(*g_env)->CallStaticVoidMethod(g_env, _gClass, method_id);
+//		wait(1);
+//		++xx;
+//	}
+
+//	START ( DOWNLOAD THE STREAM )
+	{
+		int32_t now, lastUpdate;
+		int bufferSize = 64 * 1024;
+		char *buffer = (char *) malloc(bufferSize);
+		int nRead = 0;
+		off_t size = ftello(file);
+		unsigned long lastPercent = 0;
+
+		rtmp->m_read.timestamp = dSeek;
+
+		*percent = 0.0;
+
+		//PROBABLY REMOVING IT
+		if (bResume && nInitialFrameSize > 0)
+			rtmp->m_read.flags |= RTMP_READ_RESUME;
+
+		rtmp->m_read.initialFrameType = initialFrameType;
+		rtmp->m_read.nResumeTS = dSeek;
+		rtmp->m_read.metaHeader = metaHeader;
+		rtmp->m_read.initialFrame = initialFrame;
+		rtmp->m_read.nMetaHeaderSize = nMetaHeaderSize;
+		rtmp->m_read.nInitialFrameSize = nInitialFrameSize;
+
+		now = RTMP_GetTime();
+		lastUpdate = now - 1000;
+		do {
+			nRead = RTMP_Read(rtmp, buffer, bufferSize);
+			LOGE("nRead: %d\n", nRead);
+			if (nRead > 0) {
+//				if (fwrite(buffer, sizeof(unsigned char), nRead, file)
+//						!= (size_t) nRead) {
+//					RTMP_Log(RTMP_LOGERROR, "%s: Failed writing, exiting!",
+//							__FUNCTION__);
+//					free(buffer);
+//					return RD_FAILED;
+//				}
+				size += nRead;
+				if (duration <= 0) // if duration unknown try to get it from the stream (onMetaData)
+					duration = RTMP_GetDuration(rtmp);
+
+				if (duration > 0) {
+					// make sure we claim to have enough buffer time!
+					if (!bOverrideBufferTime
+							&& bufferTime < (duration * 1000.0)) {
+						bufferTime = (uint32_t)(duration * 1000.0) + 5000; // extra 5sec to make sure we've got enough
+						RTMP_SetBufferMS(rtmp, bufferTime);
+						RTMP_UpdateBufferMS(rtmp);
+					}
+					*percent = ((double) rtmp->m_read.timestamp)
+							/ (duration * 1000.0) * 100.0;
+					*percent = ((double) (int) (*percent * 10.0)) / 10.0;
+					if (bHashes) {
+						if (lastPercent + 1 <= *percent) {
+							lastPercent = (unsigned long) *percent;
+						}
+					} else {
+						now = RTMP_GetTime();
+						if (abs(now - lastUpdate) > 200) {
+							lastUpdate = now;
+						}
+					}
+				} else {
+					now = RTMP_GetTime();
+					if (abs(now - lastUpdate) > 200) {
+						lastUpdate = now;
+					}
+				}
+			}
+		} while (!RTMP_ctrlC && nRead > -1 && RTMP_IsConnected(rtmp));
+		free(buffer);
+		if (nRead < 0)
+			nRead = rtmp->m_read.status;
+
+		/* Final status update */
+		if (!bHashes) {
+			if (duration > 0) {
+				*percent = ((double) rtmp->m_read.timestamp)
+						/ (duration * 1000.0) * 100.0;
+				*percent = ((double) (int) (*percent * 10.0)) / 10.0;
+			}
+		}
+
+		LOGE("RTMP_Read returned: %d", nRead);
+
+		if (bResume && nRead == -2) {
+			RTMP_LogPrintf("Couldn't resume FLV file, try --skip %d\n\n",
+					nSkipKeyFrames + 1);
+			return RD_FAILED;
+		}
+
+		if (nRead == -3)
+			return RD_SUCCESS;
+
+		if ((duration > 0 && *percent < 99.9) || RTMP_ctrlC || nRead < 0
+				|| RTMP_IsTimedout(rtmp)) {
+			return RD_INCOMPLETE;
+		}
+
+	}
+//	END ( DOWNLOAD THE STREAM)
+	if (isAttached == TRUE) {
+		(*gJavaVM)->DetachCurrentThread(gJavaVM);
+	}
+
+	return RD_SUCCESS;
+}
+
+jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+	JNIEnv *env;
+	gJavaVM = vm;
+	LOGE("JNI_OnLoad called");
+	if ((*vm)->GetEnv(vm, (void**) &env, JNI_VERSION_1_6) != JNI_OK) {
+		LOGE("Failed to get the environment using GetEnv()");
+		return -1;
+	}
+	return JNI_VERSION_1_6;
+}
+void JNI_OnUnload(JavaVM *vm, void *reserved) {
+	LOGE("JNI OnUnload called");
+	JNIEnv* env;
+	if ((*vm)->GetEnv(vm, (void **) &env, JNI_VERSION_1_6) != JNI_OK) {
+		// Something is wrong but nothing we can do about this :(
+		return;
+	} else {
+		// delete global references so the GC can collect them
+		if (_gClass != NULL) {
+			(*env)->DeleteGlobalRef(env, _gClass);
+		}
+		if (_gObject != NULL) {
+			(*env)->DeleteGlobalRef(env, _gObject);
+		}
+	}
+}
 JNIEXPORT jint JNICALL Java_nativeutils_MyRtmp_CallMain(JNIEnv *env,
-		jclass jcls, jstring _rtmpUrl, jstring _appName, jstring _SWFUrl,
+		jobject job, jstring _rtmpUrl, jstring _appName, jstring _SWFUrl,
 		jstring _pageUrl, jstring _playPath) {
+	//BEGIN (CACHE IT)
+	_gObject = (jobject)(*env)->NewGlobalRef(env, job);
+	jclass clazz = (*env)->GetObjectClass(env, job);
+	_gClass = (jclass)(*env)->NewGlobalRef(env, clazz);
+	//END (CACHE IT)
 	const char *rtmp_url = (*env)->GetStringUTFChars(env, _rtmpUrl, 0);
-	char *app_name = (char *)(*env)->GetStringUTFChars(env, _appName, 0);
-	char *swf_url = (char *)(*env)->GetStringUTFChars(env, _SWFUrl, 0);
-	char *page_url = (char *)(*env)->GetStringUTFChars(env, _pageUrl, 0);
-	char *play_path = (char *)(*env)->GetStringUTFChars(env, _playPath, 0);
+	char *app_name = (char *) (*env)->GetStringUTFChars(env, _appName, 0);
+	char *swf_url = (char *) (*env)->GetStringUTFChars(env, _SWFUrl, 0);
+	char *page_url = (char *) (*env)->GetStringUTFChars(env, _pageUrl, 0);
+	char *play_path = (char *) (*env)->GetStringUTFChars(env, _playPath, 0);
 
 	//BEGIN (RTMP INI)
 	int nStatus = RD_SUCCESS;
@@ -261,6 +456,7 @@ JNIEXPORT jint JNICALL Java_nativeutils_MyRtmp_CallMain(JNIEnv *env,
 	//END (RTMP INI )
 
 	//START ( TRYING TO CONNECT )
+
 	{
 		LOGE("Setting buffer time %d ms", bufferTime);
 		RTMP_SetBufferMS(&rtmp, bufferTime);
@@ -277,6 +473,16 @@ JNIEXPORT jint JNICALL Java_nativeutils_MyRtmp_CallMain(JNIEnv *env,
 		}
 	}
 	//END ( TRYING TO CONNECT )
+	if (nStatus == RD_SUCCESS) {
+		//A SUCCESSFUL CONNECTION
+		//Go get the stream
+		nStatus = Download(&rtmp, file, dSeek, dStopOffset, duration, bResume,
+				metaHeader, nMetaHeaderSize, initialFrame, initialFrameType,
+				nInitialFrameSize, nSkipKeyFrames, bStdoutMode, bLiveStream,
+				bHashes, bOverrideBufferTime, bufferTime, &percent);
+		free(initialFrame);
+		initialFrame = NULL;
+	}
 
 	clean: LOGE("CLOSING CONNECTION");
 	RTMP_Close(&rtmp);
