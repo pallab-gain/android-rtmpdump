@@ -14,9 +14,14 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="66dp"
         android:text="@string/toggle_button"
         android:textOff="Start Recording"
         android:textOn="Stop Recording" />
+	
+    <VideoView
+        android:id="@+id/video_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/toggleButton1" />
 
 </RelativeLayout>

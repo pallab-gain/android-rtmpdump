@@ -26,7 +26,7 @@ public class Helper {
 		// name will be deviceID and date millisecond like
 		File mediaFile = new File(mediaStorageDir.getPath() + File.separator
 				+ videoFileName);
-		if(mediaFile.exists()){
+		if (mediaFile.exists()) {
 			mediaFile.delete();
 		}
 		return mediaFile;
